@@ -1,56 +1,66 @@
+/* FlightSelection.css */
 .flight-search-container {
-  font-family: Arial, sans-serif;
+  text-align: center;
   padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .search-form {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  /* Adds space between the input fields */
   margin-bottom: 20px;
 }
 
 .search-form input {
+  width: 300px;
+  /* Adjust the width as needed */
   padding: 10px;
-  font-size: 16px;
-  width: 45%;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 .search-form button {
   padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
+  border: none;
   background-color: #007bff;
   color: white;
-  border: none;
   border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-form button:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
 
 .flights-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 }
 
 .flight-box {
-  padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #f9f9f9;
+  padding: 15px;
+  width: 300px;
+  text-align: left;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
 .flight-box:hover {
-  background-color: #e0e0e0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .flight-box p {
   margin: 5px 0;
-}
-
-.flight-box p strong {
-  display: inline-block;
-  width: 120px;
 }

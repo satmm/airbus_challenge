@@ -3,14 +3,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './FlightSelection.css';
 
-const FlightSearch = () => {
-  const [fromICAO, setFromICAO] = useState('');
-  const [toICAO, setToICAO] = useState('');
-  const [flights, setFlights] = useState([]);
-  const [error, setError] = useState('');
+const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFlights }) => {
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
-  const fetchFlights = async (retryCount = 0) => {
+  const fetchFlights = async () => {
     try {
       const response = await axios.get(`/api/flightplans?fromICAO=${fromICAO}&toICAO=${toICAO}`);
       const uniqueFlights = removeDuplicates(response.data);
