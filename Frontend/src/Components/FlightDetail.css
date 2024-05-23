@@ -1,0 +1,19 @@
+.flight-detail-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .flight-info {
+    margin-bottom: 20px;
+  }
+  
+  .flight-info p {
+    margin: 5px 0;
+  }
+  
+  .flight-info p strong {
+    display: inline-block;
+    width: 120px;
+  }
+  
