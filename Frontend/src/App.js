@@ -16,10 +16,18 @@ const App = () => {
           <Route
             path="/"
             element={
-              <FlightSearch />
+              <FlightSearch
+                fromICAO={fromICAO}
+                toICAO={toICAO}
+                flights={flights}
+                setFromICAO={setFromICAO}
+                setToICAO={setToICAO}
+                setFlights={setFlights}
+              />
             }
           />
           <Route path="/flight/:id" element={<FlightDetail />} />
+          
         </Routes>
       </div>
     </Router>

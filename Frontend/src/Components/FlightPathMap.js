@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './FlightSelection.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlaneDeparture, faPlaneArrival } from '@fortawesome/free-solid-svg-icons';
-import { GoArrowSwitch } from 'react-icons/go';
-import Background from '../assets/Background.mp4';
 
 const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFlights }) => {
   const navigate = useNavigate();
@@ -13,7 +9,7 @@ const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFl
 
   const fetchFlights = async () => {
     try {
-      const response = await axios.get(/api/flightplans ? fromICAO = ${ fromICAO } & toICAO=${ toICAO });
+      const response = await axios.get(`/api/flightplans?fromICAO=${fromICAO}&toICAO=${toICAO}`);
       const uniqueFlights = removeDuplicates(response.data);
       setFlights(uniqueFlights);
     } catch (error) {
@@ -23,7 +19,7 @@ const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFl
   };
 
   const handleFlightClick = (flightId) => {
-    navigate(/flight/${ flightId });
+    navigate(`/flight/${flightId}`);
   };
 
   const removeDuplicates = (flights) => {
@@ -35,48 +31,43 @@ const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFl
     });
   };
 
-  const switchICAOs = () => {
-    const temp = fromICAO;
-    setFromICAO(toICAO);
-    setToICAO(temp);
-  };
-
   return (
     <div className="flight-search-container">
-      <video autoPlay loop muted className="background-video">
-        <source src={Background} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-      <div className="content">
-        <h1>Flight Plan Search</h1>
-        <div className="search-form">
-          <div className="input-group">
-            <FontAwesomeIcon icon={faPlaneDeparture} className="input-icon" />
-            <input
-              type="text"
-              placeholder="Enter From ICAO"
-              value={fromICAO}
-              onChange={(e) => setFromICAO(e.target.value)}
-            />
+      <h1>Flight Plan Search</h1>
+      <div className="search-form">
+        <input
+          type="text"
+          placeholder="Enter From ICAO"
+          value={fromICAO}
+          onChange={(e) => setFromICAO(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Enter To ICAO"
+          value={toICAO}
+          onChange={(e) => setToICAO(e.target.value)}
+        />
+        <button onClick={fetchFlights}>Search</button>
+      </div>
+      {error && <p className="error">{error}</p>}
+      <div className="flights-list">
+        {flights.map(flight => (
+          <div
+            key={flight.id}
+            className="flight-box"
+            onClick={() => handleFlightClick(flight.id)}
+          >
+            <p><strong>Flight ID:</strong> {flight.id}</p>
+            <p><strong>Departure Airport:</strong> {flight.fromName}</p>
+            <p><strong>Arrival Airport:</strong> {flight.toName}</p>
+            <p><strong>Total Distance:</strong> {flight.distance.toFixed(2)} km</p>
+            <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
+            <p><strong>To ICAO:</strong> {flight.toICAO}</p>
+            <p><strong>Way Points:</strong> {flight.waypoints}</p>
           </div>
-          <div className="switch-button" onClick={switchICAOs}>
-            <GoArrowSwitch size={30} />
-          </div>
-          <div className="input-group">
-            <FontAwesomeIcon icon={faPlaneArrival} className="input-icon" />
-            <input
-              type="text"
-              placeholder="Enter To ICAO"
-              value={toICAO}
-              onChange={(e) => setToICAO(e.target.value)}
-            />
-          </div>
-          <button className="search-button" onClick={fetchFlights}>Search</button>
-        </div>
-        {/* Rest of your code */}
+        ))}
       </div>
     </div>
-
   );
 };
 

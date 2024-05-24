@@ -8,6 +8,7 @@ import airplane from "../assets/airplane.png";
 import airport from "../assets/airport.png";
 import aeroplane from "../assets/airplane1.png";
 import './FlightDetail.css';
+import FuelData from './FuelData'; 
 
 // Define kelvinToCelsius function
 const kelvinToCelsius = (kelvin) => {
@@ -219,9 +220,9 @@ const FlightDetail = () => {
         </div>
 
         <div className="card flight-detail-card">
-          
-            
+          <FuelData aircraft="60006b" distance={flight.distance} />
         </div>
+
         
 
       </div>

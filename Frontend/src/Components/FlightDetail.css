@@ -26,9 +26,9 @@
   box-sizing: border-box;
 }
 
-.card:hover {
+/* .card:hover {
   transform: scale(1.05);
-}
+} */
 
 .loading-spinner {
   display: flex;
