@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';  
+import L from 'leaflet';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import airplane from "../assests/airplane.png"; 
-import airport from "../assests/airport.png";
+import airplane from "../assets/airplane.png";
+import airport from "../assets/airport.png";
 import './FlightDetail.css';
+
+// Define kelvinToCelsius function
+const kelvinToCelsius = (kelvin) => {
+  return kelvin - 273.15; // Conversion formula from Kelvin to Celsius
+};
 
 const FlightDetail = () => {
   const { id } = useParams();
   const [flight, setFlight] = useState(null);
   const [weatherData, setWeatherData] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const fetchFlightDetails = async () => {
@@ -29,9 +35,11 @@ const FlightDetail = () => {
 
         setFlight(flightData);
         setWeatherData(weatherData);
+        setLoading(false); // Set loading to false after data is fetched
       } catch (error) {
         setError('Error fetching flight details: ' + error.message);
         console.error('Error fetching flight details:', error);
+        setLoading(false); // Set loading to false on error
       }
     };
 
@@ -83,12 +91,16 @@ const FlightDetail = () => {
     return <div>{error}</div>;
   }
 
-  if (!flight) {
-    return <div>Loading flight details...</div>;
+  if (loading || !flight) { // Display loading spinner while loading
+    return (
+      <div className="loading-spinner">
+        <div className="spinner"></div>
+        <p>Loading flight details...</p>
+      </div>
+    );
   }
 
   const pathCoordinates = flight.route.nodes.map(node => [node.lat, node.lon]);
-
 
   // Blue airplane icon for departure
   const departureIcon = new L.Icon({
@@ -111,14 +123,27 @@ const FlightDetail = () => {
 
   return (
     <div className="flight-detail-container">
-      <div className="flight-info card">
-        <h1>Flight Detail</h1>
-        <p><strong>Path ID:</strong> {flight.id}</p>
-        <p><strong>Departure Airport:</strong> {flight.fromName}</p>
-        <p><strong>Arrival Airport:</strong> {flight.toName}</p>
-        <p><strong>Distance:</strong> {flight.distance.toFixed(2)} km</p>
-        <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
-        <p><strong>To ICAO:</strong> {flight.toICAO}</p>
+      <div className='flight-info'>
+        <div className="card flight-detail-card">
+          <h1>Flight Details</h1>
+          <p><strong>Path ID:</strong> {flight.id}</p>
+          <p><strong>Departure Airport:</strong> {flight.fromName}</p>
+          <p><strong>Arrival Airport:</strong> {flight.toName}</p>
+          <p><strong>Distance:</strong> {flight.distance.toFixed(2)} km</p>
+          {/* <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
+            <p><strong>To ICAO:</strong> {flight.toICAO}</p> */}
+        </div>
+
+        <div className="card flight-detail-card">
+          <h1>Flight Detail</h1>
+          <p><strong>Path ID:</strong> {flight.id}</p>
+          <p><strong>Departure Airport:</strong> {flight.fromName}</p>
+          <p><strong>Arrival Airport:</strong> {flight.toName}</p>
+          <p><strong>Distance:</strong> {flight.distance.toFixed(2)} km</p>
+          {/* <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
+            <p><strong>To ICAO:</strong> {flight.toICAO}</p> */}
+        </div>
+
       </div>
 
       <div className="map-container">
@@ -136,11 +161,17 @@ const FlightDetail = () => {
             <Popup>{flight.toName} ({flight.toICAO})</Popup>
           </Marker>
 
-          {flight.route.nodes.slice(1, -1).map((node, index) => (
+          {flight.route.nodes.map((node, index) => (
             <Marker key={index} position={[node.lat, node.lon]} icon={waypointIcon}>
               <Popup>
-                {node.ident}: {node.name}<br />
-                Weather: {weatherData[index]?.weather[0]?.description}
+                <span style={{ color: 'blue', fontWeight: 'bold' }}>{node.ident}: {node.name}</span><br />
+                <b>Weather: </b> {weatherData[index]?.weather[0]?.description}<br />
+                <b>Temperature:</b> {kelvinToCelsius(weatherData[index]?.main?.temp).toFixed(2)} °C<br />
+                <b>Humidity:</b> {weatherData[index]?.main?.humidity}%<br />
+                <b>Visibility:</b> {weatherData[index]?.visibility} meters<br />
+                <b>Wind Speed:</b> {weatherData[index]?.wind?.speed} m/s<br />
+                <b>Sunrise:</b> {new Date(weatherData[index]?.sys?.sunrise * 1000).toLocaleTimeString()}<br />
+                <b>Sunset:</b> {new Date(weatherData[index]?.sys?.sunset * 1000).toLocaleTimeString()}<br />
               </Popup>
             </Marker>
           ))}

@@ -1,66 +1,85 @@
-/* FlightSelection.css */
 .flight-search-container {
-  text-align: center;
+  font-family: Arial, sans-serif;
   padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .search-form {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  /* Adds space between the input fields */
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 
 .search-form input {
-  width: 300px;
-  /* Adjust the width as needed */
   padding: 10px;
-  margin: 5px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  font-size: 16px;
+  width: 45%;
+  min-width: 200px;
+  /* Ensure the input field is wide enough for 16 characters */
+  flex: 1;
 }
 
 .search-form button {
   padding: 10px 20px;
-  border: none;
+  font-size: 16px;
+  cursor: pointer;
   background-color: #007bff;
   color: white;
+  border: none;
   border-radius: 5px;
-  cursor: pointer;
-}
-
-.search-form button:hover {
-  background-color: #0056b3;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
+  margin-left: 10px;
+  /* Add some space between input fields and button */
 }
 
 .flights-list {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   gap: 20px;
 }
 
 .flight-box {
+  padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 15px;
-  width: 300px;
-  text-align: left;
+  background-color: #f9f9f9;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .flight-box:hover {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #e0e0e0;
 }
 
 .flight-box p {
   margin: 5px 0;
+}
+
+.flight-box p strong {
+  display: inline-block;
+  width: 120px;
+}
+
+.dropdown {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 1000;
+}
+
+.dropdown li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #f1f1f1;
+}
+
+.input-group {
+  position: relative;
+  flex: 1;
 }
