@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import airplane from "../assets/airplane.png";
 import airport from "../assets/airport.png";
+import aeroplane from "../assets/airplane1.png";
 import './FlightDetail.css';
 
 // Define kelvinToCelsius function
@@ -19,6 +20,12 @@ const FlightDetail = () => {
   const [weatherData, setWeatherData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
+  const [currentPosition, setCurrentPosition] = useState(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [routeWeight, setRouteWeight] = useState(null);
+
+  const requestRef = useRef();
+
 
   useEffect(() => {
     const fetchFlightDetails = async () => {
@@ -46,6 +53,50 @@ const FlightDetail = () => {
     fetchFlightDetails();
   }, [id]);
 
+  const interpolatePosition = (start, end, factor) => {
+    return {
+      lat: start[0] + (end[0] - start[0]) * factor,
+      lon: start[1] + (end[1] - start[1]) * factor,
+    };
+  };
+
+  const animateFlight = () => {
+    if (!flight) return;
+
+    const pathCoordinates = flight.route.nodes.map(node => [node.lat, node.lon]);
+    const totalSteps = 1000; // Total number of steps for the animation
+    let currentStep = 0;
+
+    const animate = () => {
+      if (currentStep >= totalSteps * (pathCoordinates.length - 1)) {
+        cancelAnimationFrame(requestRef.current);
+        return;
+      }
+
+      const segmentIndex = Math.floor(currentStep / totalSteps);
+      const start = pathCoordinates[segmentIndex];
+      const end = pathCoordinates[segmentIndex + 1];
+      const segmentStep = currentStep % totalSteps;
+      const factor = segmentStep / totalSteps;
+
+      setCurrentPosition(interpolatePosition(start, end, factor));
+
+      currentStep += 1;
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    if (flight) {
+      setCurrentPosition({ lat: flight.route.nodes[0].lat, lon: flight.route.nodes[0].lon });
+      animateFlight();
+    }
+
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [flight]);
+
   const getWeatherWeight = (weather) => {
     switch (weather) {
       case 'clear sky':
@@ -72,20 +123,41 @@ const FlightDetail = () => {
   };
 
   const calculateRouteWeight = (flight, weatherData) => {
-    return flight.route.nodes.reduce((totalWeight, node, index) => {
+    const totalWeatherWeight = flight.route.nodes.reduce((totalWeight, node, index) => {
       const weather = weatherData[index]?.weather[0]?.description;
-      const weight = getWeatherWeight(weather);
-      return totalWeight + weight;
+      const visibility = weatherData[index]?.visibility;
+      const windSpeed = weatherData[index]?.wind?.speed;
+
+      // Get weather weight based on description
+      let weatherWeight = getWeatherWeight(weather);
+
+      // Adjust weight based on visibility
+      if (visibility < 5000) {
+        weatherWeight += 2; // Increase weight if visibility is less than 5000 meters
+      }
+
+      // Adjust weight based on wind speed
+      if (windSpeed > 10) {
+        weatherWeight += 3; // Increase weight if wind speed is greater than 10 m/s
+      }
+
+      return totalWeight + weatherWeight;
     }, 0);
+
+    // Normalize total weight to fall within range of 10
+    const normalizedWeight = Math.min(10, totalWeatherWeight / flight.route.nodes.length);
+
+    return normalizedWeight;
   };
+
 
   useEffect(() => {
     if (flight && weatherData.length === flight.route.nodes.length) {
-      const routeWeight = calculateRouteWeight(flight, weatherData);
-      console.log('Route Weight:', routeWeight);
-      // Use this weight to compare different routes and select the safest one
+      const weight = calculateRouteWeight(flight, weatherData);
+      setRouteWeight(weight);
     }
-  }, [flight, weatherData]);
+  }, [flight, weatherData, setRouteWeight]);
+  
 
   if (error) {
     return <div>{error}</div>;
@@ -115,6 +187,12 @@ const FlightDetail = () => {
     iconAnchor: [12.5, 12.5], // Center the icon
   });
 
+  const aeroplaneIcon = new L.Icon({
+    iconUrl: aeroplane,
+    iconSize: [25, 25],
+    iconAnchor: [12.5, 12.5],
+  });
+
   const waypointIcon = new L.Icon({
     iconUrl: airport, // Use airplane icon
     iconSize: [10, 10],
@@ -132,17 +210,19 @@ const FlightDetail = () => {
           <p><strong>Distance:</strong> {flight.distance.toFixed(2)} km</p>
           {/* <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
             <p><strong>To ICAO:</strong> {flight.toICAO}</p> */}
+          {routeWeight && (
+            <div>
+              <h2>Route Weight: {routeWeight}</h2>
+            </div>
+          )}
+            
         </div>
 
         <div className="card flight-detail-card">
-          <h1>Flight Detail</h1>
-          <p><strong>Path ID:</strong> {flight.id}</p>
-          <p><strong>Departure Airport:</strong> {flight.fromName}</p>
-          <p><strong>Arrival Airport:</strong> {flight.toName}</p>
-          <p><strong>Distance:</strong> {flight.distance.toFixed(2)} km</p>
-          {/* <p><strong>From ICAO:</strong> {flight.fromICAO}</p>
-            <p><strong>To ICAO:</strong> {flight.toICAO}</p> */}
+          
+            
         </div>
+        
 
       </div>
 
@@ -160,6 +240,12 @@ const FlightDetail = () => {
           <Marker position={pathCoordinates[pathCoordinates.length - 1]} icon={arrivalIcon}>
             <Popup>{flight.toName} ({flight.toICAO})</Popup>
           </Marker>
+
+          {currentPosition && (
+            <Marker position={[currentPosition.lat, currentPosition.lon]} icon={aeroplaneIcon}>
+              <Popup>Flying...</Popup>
+            </Marker>
+          )}
 
           {flight.route.nodes.map((node, index) => (
             <Marker key={index} position={[node.lat, node.lon]} icon={waypointIcon}>

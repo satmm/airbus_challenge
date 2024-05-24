@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Papa from 'papaparse';
 import './FlightSelection.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlaneDeparture, faPlaneArrival } from '@fortawesome/free-solid-svg-icons';
+import { GoArrowSwitch } from 'react-icons/go';
+import Background from '../assets/Background.mp4';
+import Papa from 'papaparse';
 
 const FlightSearch = () => {
   const [fromAirport, setFromAirport] = useState('');
@@ -13,6 +17,7 @@ const FlightSearch = () => {
   const [filteredFromAirports, setFilteredFromAirports] = useState([]);
   const [filteredToAirports, setFilteredToAirports] = useState([]);
   const [flights, setFlights] = useState([]);
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +41,8 @@ const FlightSearch = () => {
       return;
     }
 
+    setLoading(true); // Set loading state to true when fetching flights
+
     const url = `https://api.flightplandatabase.com/search/plans?fromICAO=${fromICAO}&toICAO=${toICAO}`;
     console.log('Fetching flights with URL:', url);  // Debugging: Log the request URL
 
@@ -45,6 +52,8 @@ const FlightSearch = () => {
       setFlights(uniqueFlights);
     } catch (error) {
       console.error('Error fetching flight plans:', error);
+    } finally {
+      setLoading(false); // Set loading state back to false when fetching is done
     }
   };
 
@@ -91,45 +100,71 @@ const FlightSearch = () => {
     console.log('Selected to airport:', airport);  // Debugging: Check the selected airport
   };
 
+  const switchICAOs = () => {
+    const tempFromAirport = fromAirport;
+    const tempFromICAO = fromICAO;
+
+    setFromAirport(toAirport);
+    setFromICAO(toICAO);
+
+    setToAirport(tempFromAirport);
+    setToICAO(tempFromICAO);
+  };
+
   return (
     <div className="flight-search-container">
-      <h1>Flight Plan Search</h1>
-      <div className="search-form">
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="Enter From Airport"
-            value={fromAirport}
-            onChange={handleFromAirportChange}
-          />
-          {filteredFromAirports.length > 0 && (
-            <ul className="dropdown">
-              {filteredFromAirports.map((airport, index) => (
-                <li key={index} onClick={() => handleFromAirportSelect(airport)}>
-                  {airport.airport} ({airport.icao})
-                </li>
-              ))}
-            </ul>
-          )}
+      <video autoPlay loop muted className="background-video">
+        <source src={Background} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div className="content">
+
+        <h1>Flight Plan Search</h1>
+        <div className="search-form">
+          <div className="input-group">
+            <FontAwesomeIcon icon={faPlaneDeparture} className="input-icon" />
+            <input
+              type="text"
+              placeholder="Enter From Airport"
+              value={fromAirport}
+              onChange={handleFromAirportChange}
+            />
+            {filteredFromAirports.length > 0 && (
+              <ul className="dropdown">
+                {filteredFromAirports.map((airport, index) => (
+                  <li key={index} onClick={() => handleFromAirportSelect(airport)}>
+                    {airport.airport} ({airport.icao})
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="switch-button" onClick={switchICAOs}>
+            <GoArrowSwitch size={30} />
+          </div>
+          <div className="input-group">
+            <FontAwesomeIcon icon={faPlaneArrival} className="input-icon" />
+            <input
+              type="text"
+              placeholder="Enter To Airport"
+              value={toAirport}
+              onChange={handleToAirportChange}
+            />
+            {filteredToAirports.length > 0 && (
+              <ul className="dropdown">
+                {filteredToAirports.map((airport, index) => (
+                  <li key={index} onClick={() => handleToAirportSelect(airport)}>
+                    {airport.airport} ({airport.icao})
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button className="search-button" onClick={fetchFlights}>
+            {loading ? 'Loading...' : 'Search'} {/* Display loading state */}
+          </button>
+
         </div>
-        <div className="input-group">
-          <input
-            type="text"
-            placeholder="Enter To Airport"
-            value={toAirport}
-            onChange={handleToAirportChange}
-          />
-          {filteredToAirports.length > 0 && (
-            <ul className="dropdown">
-              {filteredToAirports.map((airport, index) => (
-                <li key={index} onClick={() => handleToAirportSelect(airport)}>
-                  {airport.airport} ({airport.icao})
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <button onClick={fetchFlights}>Search</button>
       </div>
       <div className="flights-list">
         {flights.map(flight => (

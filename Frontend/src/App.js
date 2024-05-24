@@ -16,14 +16,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <FlightSearch
-                fromICAO={fromICAO}
-                toICAO={toICAO}
-                flights={flights}
-                setFromICAO={setFromICAO}
-                setToICAO={setToICAO}
-                setFlights={setFlights}
-              />
+              <FlightSearch />
             }
           />
           <Route path="/flight/:id" element={<FlightDetail />} />

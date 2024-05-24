@@ -1,45 +1,83 @@
-import React from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import './FlightSelection.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlaneDeparture, faPlaneArrival } from '@fortawesome/free-solid-svg-icons';
+import { GoArrowSwitch } from 'react-icons/go';
+import Background from '../assets/Background.mp4';
 
-const FlightPathMap = ({ departureAirport, arrivalAirport, route }) => {
-  // Filter the route data to include only departure and arrival points
-  const filteredPathCoordinates = route
-    .filter(node => (
-      (node.lat === departureAirport.location[0] && node.lon === departureAirport.location[1]) ||
-      (node.lat === arrivalAirport.location[0] && node.lon === arrivalAirport.location[1])
-    ))
-    .map(node => [node.lat, node.lon]);
+const FlightSearch = ({ fromICAO, toICAO, flights, setFromICAO, setToICAO, setFlights }) => {
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
 
-  // Custom airport icon
-  const airportIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447279.png',
-    iconSize: [25, 25],
-    iconAnchor: [12, 12],
-  });
+  const fetchFlights = async () => {
+    try {
+      const response = await axios.get(/api/flightplans ? fromICAO = ${ fromICAO } & toICAO=${ toICAO });
+      const uniqueFlights = removeDuplicates(response.data);
+      setFlights(uniqueFlights);
+    } catch (error) {
+      console.error('Error fetching flight plans:', error);
+      setError('Failed to fetch flight plans. Please try again later.');
+    }
+  };
+
+  const handleFlightClick = (flightId) => {
+    navigate(/flight/${ flightId });
+  };
+
+  const removeDuplicates = (flights) => {
+    const seen = new Set();
+    return flights.filter(flight => {
+      const duplicate = seen.has(flight.distance + flight.waypoints);
+      seen.add(flight.distance + flight.waypoints);
+      return !duplicate;
+    });
+  };
+
+  const switchICAOs = () => {
+    const temp = fromICAO;
+    setFromICAO(toICAO);
+    setToICAO(temp);
+  };
 
   return (
-    <MapContainer center={filteredPathCoordinates[0]} zoom={4} style={{ height: '500px', width: '100%' }}>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
+    <div className="flight-search-container">
+      <video autoPlay loop muted className="background-video">
+        <source src={Background} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div className="content">
+        <h1>Flight Plan Search</h1>
+        <div className="search-form">
+          <div className="input-group">
+            <FontAwesomeIcon icon={faPlaneDeparture} className="input-icon" />
+            <input
+              type="text"
+              placeholder="Enter From ICAO"
+              value={fromICAO}
+              onChange={(e) => setFromICAO(e.target.value)}
+            />
+          </div>
+          <div className="switch-button" onClick={switchICAOs}>
+            <GoArrowSwitch size={30} />
+          </div>
+          <div className="input-group">
+            <FontAwesomeIcon icon={faPlaneArrival} className="input-icon" />
+            <input
+              type="text"
+              placeholder="Enter To ICAO"
+              value={toICAO}
+              onChange={(e) => setToICAO(e.target.value)}
+            />
+          </div>
+          <button className="search-button" onClick={fetchFlights}>Search</button>
+        </div>
+        {/* Rest of your code */}
+      </div>
+    </div>
 
-      {/* Departure Airport Marker */}
-      <Marker position={departureAirport.location} icon={airportIcon}>
-        <Popup>{departureAirport.name} ({departureAirport.code})</Popup>
-      </Marker>
-
-      {/* Arrival Airport Marker */}
-      <Marker position={arrivalAirport.location} icon={airportIcon}>
-        <Popup>{arrivalAirport.name} ({arrivalAirport.code})</Popup>
-      </Marker>
-
-      {/* Flight Path Polyline */}
-      <Polyline positions={filteredPathCoordinates} color="blue" weight={3} />
-    </MapContainer>
   );
 };
 
-export default FlightPathMap;
+export default FlightSearch;
