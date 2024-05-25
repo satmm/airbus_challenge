@@ -117,3 +117,31 @@
     /* Adjust the percentage-based height for smaller screens */
   }
 }
+
+/* FlightDetail.css */
+
+.chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  /* Adjust as needed */
+  right: 20px;
+  /* Adjust as needed */
+  z-index: 1000;
+  /* Ensure it's above other elements */
+  width: 350px;
+  /* Adjust as needed */
+  height: 500px;
+  /* Adjust as needed */
+}
+
+.map-container {
+  height: calc(100vh - 100px);
+  /* Adjust height to fit screen, excluding any fixed elements */
+  width: 100%;
+}
+
+.flight-detail-container {
+  position: relative;
+  padding-bottom: 520px;
+  /* Ensure there's space for the fixed chatbot */
+}

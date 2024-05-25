@@ -21,6 +21,7 @@ const FuelData = ({ aircraft, distance }) => {
 
         fetchFuelData();
     }, [aircraft, distance]);
+    
 
     if (loading) {
         return (
